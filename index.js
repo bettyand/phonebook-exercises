@@ -1,12 +1,16 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
-const PORT = 3001
+const PORT = 3002
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
 
 app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postData'))
+
+morgan.token('postData', (req) => JSON.stringify(req.body))
 
 let persons = [
     {
@@ -57,7 +61,6 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
 })
 
-
 // It would make more sense to use this:
 // const generateId = () => {
 //     const maxId = persons.length > 0
@@ -66,7 +69,8 @@ app.delete('/api/persons/:id', (request, response) => {
 //     return maxId + 1
 // }
 // but the assignment says to use this:
-const generateId = (maxId) => { Math.floor(Math.random() * maxId) }
+const generateId = () => Math.floor(Math.random() * 69420);
+
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -75,24 +79,20 @@ app.post('/api/persons', (request, response) => {
         return response.status(400).json({
             error: 'name missing'
         })
-    }
-
-    if (!body.number) {
+    } else if (!body.number) {
         return response.status(400).json({
             error: 'number missing'
         })
-    }
-
-    for (let i = 0; i < persons.length; i++) {
+    } else for (let i = 0; i < persons.length; i++) {
         if (body.name === persons[i].name) {
-            return response.status(400).json({
+            return response.status(409).json({
                 error: 'name must be unique'
             })
         }
     }
 
     const person = {
-        id: generateId(69420),
+        id: generateId(),
         name: body.name,
         number: body.number
     }
